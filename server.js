@@ -4,17 +4,28 @@ const Product = require('./models/ProductModel')
 const productController = require('./controllers/productController')
 const userController = require('./controllers/UserController')
 const variationController = require('./controllers/variationsController')
+const mailsend = require('./controllers/Mailer')
 const app = express()
 
 app.use(express.json())
 
 
+//mail api
+app.get('/sendMail', mailsend.sendMail)
+
 //user Api
 app.post('/user', userController.createUser)
 app.get('/user/:id', userController.getUsersbyId)
+app.post('/userlogin', userController.Login);
+app.post('/profile', userController.varifToken, userController.profile);
 
 //using prodct controllers API
 app.get('/probyController', productController.getAllProducts)
+app.post('/imageupload', productController.upload, productController.imageupload)
+app.post('/videoUpload', productController.uploadVideo, productController.imageupload)
+app.post('/multipleImage', productController.multipleImages, productController.handleImageUpload)
+
+app.get('/authApi', productController.authenticate, productController.getAllProducts)
 
 app.post('/productWithVar', productController.createProductwithVariation)
 
