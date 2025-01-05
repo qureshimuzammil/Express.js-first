@@ -55,7 +55,7 @@ function handleImageUpload(req, res, next) {
         const imagePaths = req.files.map(file => file.path);
         // imageUpload(imagePaths); // Call your imageUpload function here with imagePaths
 
-        res.status(200).json({ message: 'Images uploaded successfully' , path : imagePaths });
+        res.status(200).json({ message: 'Images uploaded successfully', path: imagePaths });
     });
 }
 
@@ -136,7 +136,18 @@ const getProductwithVariations = async (req, res) => {
 
             const varData = await Variation.find({ product_id: Id });
 
-            res.status(201).json({ status: 'success', data: product, varData: varData });
+            product.varData = varData;
+
+            // res.status(201).json({ status: 'success', data: product });
+            const responseData = {
+                status: 'success',
+                data: {
+                    ...product.toObject(), // Convert Mongoose document to plain object
+                    varData: varData // Add varData as a property of data
+                }
+            };
+        
+            res.status(201).json(responseData);
         } else {
             res.status(404).json({ status: 'not found' });
         }
@@ -160,5 +171,5 @@ module.exports = {
     uploadVideo,
     multipleImages,
     handleImageUpload
-    
+
 };
