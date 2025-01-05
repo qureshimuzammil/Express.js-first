@@ -3,6 +3,10 @@ const User = require('../models/User');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const secretKe = 'secretKey'; //
+const Madicine = require('../models/Medicine.model');
+const fs = require('fs');
+
+
 
 
 
@@ -76,7 +80,53 @@ const varifToken = async (req, res, next) => {
     }
 }
 
+const UploadExcel = async (req, res) => { 
+
+    const filePath = req.file.path;
+
+    fs.readFile(filePath , 'utf8' , async (err , data) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to read file' });
+        }
+
+        const rows = data.split('\n');
+        const headers = rows[0].split(',').map(h => h.trim());
+        const entries = rows.slice(1).map((row) => {
+            const values = row.split(',').map(v => v.trim());
+            const obj = {};
+            headers.forEach((header, index) => {
+                const formattedHeader = header.toLowerCase().replace(/ /g, '');
+                obj[formattedHeader] = values[index];
+            });
+            return obj;
+        });
+        // Filter out empty rows
+
+       
+
+        try {
+            // Insert into MongoDB
+            await Madicine.insertMany(
+                entries.map(entry => ({
+                    name: entry.medicinenames,
+                    mg: entry.mg,
+                    manufacturer: entry.manufacturer,
+                    description: entry.description,
+                }))
+            );
+
+            // Clean up the uploaded file
+            fs.unlinkSync(filePath);
+
+            res.json({ message: 'Data uploaded successfully', data: entries });
+        } catch (insertError) {
+            res.status(500).json({ error: 'Failed to insert data into MongoDB', details: insertError });
+        }
+    })
+}
+
 module.exports = {
+    UploadExcel,
     createUser,
     getUsersbyId,
     Login,

@@ -1,3 +1,4 @@
+
 const express = require('express')
 const mongoose = require('mongoose')
 const Product = require('./models/ProductModel')
@@ -5,13 +6,36 @@ const productController = require('./controllers/productController')
 const userController = require('./controllers/UserController')
 const variationController = require('./controllers/variationsController')
 const mailsend = require('./controllers/Mailer')
+const cart = require('./controllers/cart');
+const checkAccess = require('./middleware/checkAccess');
 const app = express()
+
+const multer = require('multer');
+
+const upload = multer({dest : 'upload/'});
 
 app.use(express.json())
 
+// This for generate token
+const jwt = require('jsonwebtoken');
+// Define payload and secret
+// const payload = { user: 'exampleUser' }; // Customize payload as needed
+// const secret = process.env.JWT_SECRET || 'your_secret_key';
+
+// Generate token
+// const token = jwt.sign(payload, secret); // , { expiresIn: '1h' }Adjust expiration as needed
+// console.log('Generated Token:', token);
+// 
+
+
+// Cart Api
+app.post('/addCart' ,checkAccess, cart.addCart);
+app.get('/getCart' , checkAccess , cart.getCart);
 
 //mail api
 app.get('/sendMail', mailsend.sendMail)
+
+app.post('/excel-upload' ,upload.single('file'), userController.UploadExcel);
 
 //user Api
 app.post('/user', userController.createUser)
